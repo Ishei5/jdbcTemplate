@@ -1,6 +1,7 @@
 package com.pankov.roadtosenior;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 public class Framework {
 
@@ -66,6 +67,19 @@ public class Framework {
     }
 
     public Framework() {
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Framework framework = (Framework) o;
+        return id == framework.id && Objects.equals(name, framework.name) && Objects.equals(language, framework.language) && Objects.equals(link, framework.link) && Objects.equals(creationDate, framework.creationDate);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, name, language, link, creationDate);
     }
 
     @Override

@@ -33,10 +33,10 @@ public class JdbcTemplate {
             }
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 if (!resultSet.next()) {
-                    throw new SQLException("Object matching the parameters {} was not found", Arrays.toString(params));
+                    throw new SQLException("Object matching the parameters was not found", Arrays.toString(params));
                 }
 
-                return rowMapper.mapRow(resultSet);
+                return rowMapper.mapRow(resultSet, 0);
             }
         } catch (SQLException exception) {
             throw new RuntimeException(exception);
@@ -50,7 +50,7 @@ public class JdbcTemplate {
              ResultSet resultSet = preparedStatement.executeQuery()) {
 
             while (resultSet.next()) {
-                T object = rowMapper.mapRow(resultSet);
+                T object = rowMapper.mapRow(resultSet, 0);
                 list.add(object);
             }
 
@@ -69,11 +69,11 @@ public class JdbcTemplate {
             try {
                 setParameters(preparedStatement, params);
             } catch (Exception exception) {
-                throw new RuntimeException("Error during set parameters to PreparedStatement - {}", exception);
+                throw new RuntimeException("Error during set parameters to PreparedStatement", exception);
             }
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 while (resultSet.next()) {
-                    T object = rowMapper.mapRow(resultSet);
+                    T object = rowMapper.mapRow(resultSet, 0);
                     list.add(object);
                 }
             }
@@ -92,13 +92,13 @@ public class JdbcTemplate {
             try {
                 setParameters(preparedStatement, params);
             } catch (Exception exception) {
-                throw new RuntimeException("Error during set parameters to PreparedStatement - {}", exception);
+                throw new RuntimeException("Error during set parameters to PreparedStatement", exception);
             }
 
             return preparedStatement.executeUpdate();
 
         } catch (SQLException exception) {
-            throw new RuntimeException("Cannot execute update {}", exception);
+            throw new RuntimeException("Cannot execute update", exception);
         }
     }
 
@@ -113,14 +113,14 @@ public class JdbcTemplate {
                 list.clear();
 
                 while (resultSet.next()) {
-                    Map<String, Object> object = rowMapper.mapRow(resultSet);
+                    Map<String, Object> object = rowMapper.mapRow(resultSet, 0);
                     list.add(object);
                 }
             }
 
             return updateCount;
         } catch (SQLException exception) {
-            throw new RuntimeException("Cannot execute update {}", exception);
+            throw new RuntimeException("Cannot execute update", exception);
         }
 
     }

@@ -11,7 +11,7 @@ import java.util.Map;
 public class ColumnRowMapper implements RowMapper<Map<String, Object>> {
 
     @Override
-    public Map<String, Object> mapRow(ResultSet resultSet) throws SQLException {
+    public Map<String, Object> mapRow(ResultSet resultSet, int rowNum) throws SQLException {
         ResultSetMetaData metaData = resultSet.getMetaData();
         int columnCount = metaData.getColumnCount();
         Map<String, Object> map = new HashMap<>(columnCount);

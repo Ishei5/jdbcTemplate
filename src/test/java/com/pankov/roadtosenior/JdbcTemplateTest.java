@@ -1,41 +1,58 @@
 package com.pankov.roadtosenior;
 
+import com.pankov.roadtosenior.holder.KeyHolder;
+import com.pankov.roadtosenior.holder.GeneratedKeyHolder;
+import com.pankov.roadtosenior.mapper.RowMapper;
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.h2.tools.RunScript;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 
+import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.sql.*;
 import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class JdbcTemplateTest {
 
     private final static String URL = "jdbc:h2:mem:test";
 
     private static BasicDataSource ds = new BasicDataSource();
-//    private JdbcTemplate jdbcTemplate = new JdbcTemplate(ds);
-    private com.pankov.roadtosenior.JdbcTemplate jdbcTemplate = new com.pankov.roadtosenior.JdbcTemplate(ds);
+    private JdbcTemplate jdbcTemplate = new JdbcTemplate(ds);
 
     static {
         ds.setUrl(URL);
     }
 
     @BeforeAll
-    public static void before() throws SQLException, FileNotFoundException {
-        RunScript.execute(ds.getConnection(), new FileReader("src/test/resources/test.sql"));
+    public static void before() throws SQLException {
+        System.out.println("TEEEEEEEEEEEEEEEEEEEESTT");
+        RunScript.execute(ds.getConnection(),
+                new BufferedReader(new InputStreamReader(
+                        JdbcTemplateTest.class.getClassLoader().
+                                getResourceAsStream("test.sql"), StandardCharsets.UTF_8)));
+    }
+
+
+    @Test
+    public void test_forCheckRunPuprpose() {
+        int a = 1;
+        assertEquals(1, a);
+
     }
 
     @Test
     public void testQueryMethod_shouldReturnAList() {
         List<Framework> frameworkList = jdbcTemplate.query("SELECT * from test.framework",
                 new FrameworkRowMapper());
-//                new BeanPropertyRowMapper<>(Framework.class));
         assertNotNull(frameworkList);
         assertEquals(5, frameworkList.size());
         assertEquals(List.of("Spring Framework", "Angular", "Laravel", "Hibernate", "Veujs"),
@@ -47,7 +64,6 @@ public class JdbcTemplateTest {
     public void testQueryWithParapetersMethod_shouldReturnAList() {
         List<Framework> frameworkList = jdbcTemplate.query("SELECT * from test.framework WHERE language = ?",
                 new FrameworkRowMapper(), "Java");
-//                new BeanPropertyRowMapper<>(Framework.class), "Java");
         assertNotNull(frameworkList);
         assertEquals(2, frameworkList.size());
         assertEquals(List.of("Spring Framework", "Hibernate"),
@@ -59,8 +75,9 @@ public class JdbcTemplateTest {
     public void testQueryForObject_ShouldReturnFrameWorkJava() {
         Framework javaFramework = jdbcTemplate.queryForObject("select * from test.framework where id = ?",
                 new FrameworkRowMapper(),
-//                new BeanPropertyRowMapper<>(Framework.class),
                 1);
+        assertEquals(new Framework(1, "Spring Framework", "Java",
+                "https://spring.io", LocalDateTime.parse("2017-10-01T21:22:23")), javaFramework);
     }
 
     @Test
@@ -68,14 +85,12 @@ public class JdbcTemplateTest {
         jdbcTemplate.update("DELETE FROM test.framework WHERE id = ?", 2);
         assertEquals(1, jdbcTemplate.query("select * from test.framework where language = ?",
                 new FrameworkRowMapper(),
-//                new BeanPropertyRowMapper<>(Framework.class),
                 "JavaScript").size());
     }
 
     @Test
     public void testUpdateWithReturning_ShouldReturnId() throws SQLException {
-//        KeyHolder keyHolder = new GeneratedKeyHolder();
-        com.pankov.roadtosenior.holder.KeyHolder keyHolder = new com.pankov.roadtosenior.holder.GeneratedKeyHolder();
+        KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(connection -> {
             PreparedStatement statement = connection.prepareStatement(
                     "insert into test.framework (name, language, link, creationDate) values (?, ?, ?, ?)",
@@ -91,13 +106,9 @@ public class JdbcTemplateTest {
         assertEquals(5, keyHolder.getKey().longValue());
     }
 
-    @AfterAll
-    public static void after() {
-    }
-
-    private class FrameworkRowMapper implements com.pankov.roadtosenior.mapper.RowMapper<Framework> {
+    private class FrameworkRowMapper implements RowMapper<Framework> {
         @Override
-        public Framework mapRow(ResultSet resultSet) throws SQLException {
+        public Framework mapRow(ResultSet resultSet, int rowNum) throws SQLException {
             Timestamp creationDateTimestamp = resultSet.getTimestamp("creationDate");
             LocalDateTime creationDate = creationDateTimestamp.toLocalDateTime();
             return new Framework(
@@ -108,5 +119,7 @@ public class JdbcTemplateTest {
                     creationDate
             );
         }
+
+
     }
 }
