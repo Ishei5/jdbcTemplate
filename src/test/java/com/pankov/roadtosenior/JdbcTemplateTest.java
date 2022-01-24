@@ -9,10 +9,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.sql.*;
 import java.time.LocalDateTime;
@@ -27,26 +24,35 @@ public class JdbcTemplateTest {
 
     private static BasicDataSource ds = new BasicDataSource();
     private JdbcTemplate jdbcTemplate = new JdbcTemplate(ds);
-
+    private static final String sql = """
+            create schema test;
+                        
+                create table test.framework
+                        (
+                id       identity primary key,
+                name     varchar(255) not null,
+                language varchar(255),
+                link     varchar(255),
+                creationDate timestamp
+            );
+                        
+                insert into test.framework (name, language, link, creationDate)
+                values ('Spring Framework', 'Java', 'https://spring.io', '2017-10-01 21:22:23'),
+                   ('Angular', 'JavaScript', 'https://vuejs.org', '2017-10-02 21:22:23'),
+                           ('Laravel', 'PHP', 'https://laravel.com', '2017-10-03 03:22:23'),
+                           ('Hibernate', 'Java', 'https://hibernate.org', '2017-10-04 21:22:23');
+            """;
     static {
         ds.setUrl(URL);
     }
 
     @BeforeAll
     public static void before() throws SQLException {
-        System.out.println("TEEEEEEEEEEEEEEEEEEEESTT");
+        System.out.println(sql);
         RunScript.execute(ds.getConnection(),
                 new BufferedReader(new InputStreamReader(
                         JdbcTemplateTest.class.getClassLoader().
                                 getResourceAsStream("test.sql"), StandardCharsets.UTF_8)));
-    }
-
-
-    @Test
-    public void test_forCheckRunPuprpose() {
-        int a = 1;
-        assertEquals(1, a);
-
     }
 
     @Test
@@ -90,6 +96,7 @@ public class JdbcTemplateTest {
 
     @Test
     public void testUpdateWithReturning_ShouldReturnId() throws SQLException {
+        System.out.println(ds);
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(connection -> {
             PreparedStatement statement = connection.prepareStatement(

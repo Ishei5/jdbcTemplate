@@ -5,6 +5,7 @@ import com.pankov.roadtosenior.mapper.ColumnRowMapper;
 import com.pankov.roadtosenior.mapper.RowMapper;
 
 import javax.sql.DataSource;
+import java.lang.reflect.Method;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -139,20 +140,10 @@ public class JdbcTemplate {
                 parameterClass = clazz;
                 setterType = clazz.getSimpleName();
             }
-            /*try {
-                parameterClass = (Class<?>) clazz.getField("TYPE").get(null);
-                System.out.println(parameterClass);
-                setterType = parameterClass.toString().substring(0, 1).toUpperCase() +
-                        parameterClass.toString().substring(1);
-            } catch (NoSuchFieldException exception) {
-                parameterClass = clazz;
-                setterType = clazz.getSimpleName();
-            }*/
 
-            statement.getClass()
-                    .getMethod("set" + setterType,
-                            int.class, parameterClass)
-                    .invoke(statement, i + 1, params[i]);
+            Method setMethod = statement.getClass().getMethod("set" + setterType, int.class, parameterClass);
+            setMethod.setAccessible(true);
+            setMethod.invoke(statement, i + 1, params[i]);
         }
     }
 
