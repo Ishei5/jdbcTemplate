@@ -1,0 +1,6 @@
+com\pankov\roadtosenior\mapper\ColumnRowMapper.class
+com\pankov\roadtosenior\mapper\RowMapper.class
+com\pankov\roadtosenior\PreparedStatementCreator.class
+com\pankov\roadtosenior\holder\GeneratedKeyHolder.class
+com\pankov\roadtosenior\JdbcTemplate.class
+com\pankov\roadtosenior\holder\KeyHolder.class
