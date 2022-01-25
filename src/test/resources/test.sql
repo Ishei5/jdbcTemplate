@@ -11,6 +11,6 @@ create table test.framework
 
 insert into test.framework (name, language, link, creationDate)
 values ('Spring Framework', 'Java', 'https://spring.io', '2017-10-01 21:22:23'),
-       ('Angular', 'JavaScript', 'https://vuejs.org', '2017-10-02 21:22:23'),
+       ('Angular', 'JavaScript', 'https://angular.org', '2017-10-02 21:22:23'),
        ('Laravel', 'PHP', 'https://laravel.com', '2017-10-03 03:22:23'),
        ('Hibernate', 'Java', 'https://hibernate.org', '2017-10-04 21:22:23');

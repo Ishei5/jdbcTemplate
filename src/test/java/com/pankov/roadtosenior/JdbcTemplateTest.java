@@ -13,6 +13,7 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.sql.*;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -24,31 +25,13 @@ public class JdbcTemplateTest {
 
     private static BasicDataSource ds = new BasicDataSource();
     private JdbcTemplate jdbcTemplate = new JdbcTemplate(ds);
-    private static final String sql = """
-            create schema test;
-                        
-                create table test.framework
-                        (
-                id       identity primary key,
-                name     varchar(255) not null,
-                language varchar(255),
-                link     varchar(255),
-                creationDate timestamp
-            );
-                        
-                insert into test.framework (name, language, link, creationDate)
-                values ('Spring Framework', 'Java', 'https://spring.io', '2017-10-01 21:22:23'),
-                   ('Angular', 'JavaScript', 'https://vuejs.org', '2017-10-02 21:22:23'),
-                           ('Laravel', 'PHP', 'https://laravel.com', '2017-10-03 03:22:23'),
-                           ('Hibernate', 'Java', 'https://hibernate.org', '2017-10-04 21:22:23');
-            """;
+
     static {
         ds.setUrl(URL);
     }
 
     @BeforeAll
     public static void before() throws SQLException {
-        System.out.println(sql);
         RunScript.execute(ds.getConnection(),
                 new BufferedReader(new InputStreamReader(
                         JdbcTemplateTest.class.getClassLoader().
@@ -67,7 +50,7 @@ public class JdbcTemplateTest {
     }
 
     @Test
-    public void testQueryWithParapetersMethod_shouldReturnAList() {
+    public void testQueryWithParapetersMethod_shouldReturnAList_searchByInt() {
         List<Framework> frameworkList = jdbcTemplate.query("SELECT * from test.framework WHERE language = ?",
                 new FrameworkRowMapper(), "Java");
         assertNotNull(frameworkList);
@@ -78,12 +61,41 @@ public class JdbcTemplateTest {
     }
 
     @Test
-    public void testQueryForObject_ShouldReturnFrameWorkJava() {
+    public void testQueryWithParapetersMethod_shouldReturnAList_searchByString() {
+        List<Framework> frameworkList = jdbcTemplate.query("SELECT * from test.framework WHERE language like ?",
+                new FrameworkRowMapper(), "Java%");
+        assertNotNull(frameworkList);
+        assertEquals(3, frameworkList.size());
+        frameworkList.stream().forEach(System.out::println);
+        assertEquals(List.of("Spring Framework", "Hibernate", "Veujs"),
+                frameworkList.stream().map(f -> f.getName()).toList());
+
+    }
+
+    @Test
+    public void testQueryForObject_ShouldReturnFrameWorkJava_searchByInt() {
         Framework javaFramework = jdbcTemplate.queryForObject("select * from test.framework where id = ?",
                 new FrameworkRowMapper(),
                 1);
         assertEquals(new Framework(1, "Spring Framework", "Java",
                 "https://spring.io", LocalDateTime.parse("2017-10-01T21:22:23")), javaFramework);
+    }
+
+
+    @Test
+    public void testQueryForObject_ShouldReturnFrameWorkJava_searchByString() {
+        Framework javaFramework = jdbcTemplate.queryForObject("select * from test.framework where name = ?",
+                new FrameworkRowMapper(),
+                "Laravel");
+        assertEquals(new Framework(3, "Laravel", "PHP",
+                "https://laravel.com", LocalDateTime.parse("2017-10-03T03:22:23")), javaFramework);
+    }
+
+    @Test
+    public void testQueryForObject_ShouldThrowException() {
+        assertThrows(RuntimeException.class, () ->
+                jdbcTemplate.queryForObject("select * from test.framework where id = ?",
+                        new FrameworkRowMapper()));
     }
 
     @Test
@@ -96,7 +108,6 @@ public class JdbcTemplateTest {
 
     @Test
     public void testUpdateWithReturning_ShouldReturnId() throws SQLException {
-        System.out.println(ds);
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(connection -> {
             PreparedStatement statement = connection.prepareStatement(
